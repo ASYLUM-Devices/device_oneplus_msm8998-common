@@ -645,4 +645,7 @@
     <!-- Whether device has physical tri state switch -->
     <bool name="config_hasAlertSlider">true</bool>
 
+    <!-- Set AOD off by default -->
+    <bool name="config_dozeAlwaysOnEnabled">false</bool>
+
 </resources>
