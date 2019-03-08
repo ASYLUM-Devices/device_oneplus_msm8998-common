@@ -57,13 +57,7 @@ public class KeyHandler implements DeviceKeyHandler {
     private static final int GESTURE_LTR_SCANCODE = 253;
     private static final int GESTURE_GTR_SCANCODE = 254;
     private static final int GESTURE_V_UP_SCANCODE = 255;
-    // Slider
-    private static final int MODE_TOTAL_SILENCE = 600;
-    private static final int MODE_ALARMS_ONLY = 601;
-    private static final int MODE_PRIORITY_ONLY = 602;
-    private static final int MODE_NONE = 603;
-    private static final int MODE_VIBRATE = 604;
-    private static final int MODE_RING = 605;
+    private static final int GESTURE_MAX_SCANCODE = 256;
 
     private static final int[] sSupportedGestures = new int[]{
         GESTURE_CIRCLE_SCANCODE,
@@ -71,19 +65,11 @@ public class KeyHandler implements DeviceKeyHandler {
         GESTURE_V_SCANCODE,
         GESTURE_V_UP_SCANCODE,
         GESTURE_LTR_SCANCODE,
-        GESTURE_GTR_SCANCODE,
-        MODE_TOTAL_SILENCE,
-        MODE_ALARMS_ONLY,
-        MODE_PRIORITY_ONLY,
-        MODE_NONE,
-        MODE_VIBRATE,
-        MODE_RING
+        GESTURE_GTR_SCANCODE
     };
 
     private final Context mContext;
-    private final AudioManager mAudioManager;
     private final PowerManager mPowerManager;
-    private final NotificationManager mNotificationManager;
     private Context mGestureContext = null;
     private EventHandler mEventHandler;
     private SensorManager mSensorManager;
@@ -95,9 +81,6 @@ public class KeyHandler implements DeviceKeyHandler {
         mContext = context;
         mEventHandler = new EventHandler();
         mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-        mNotificationManager
-                = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         mProximitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
         mProximityWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
@@ -157,26 +140,6 @@ public class KeyHandler implements DeviceKeyHandler {
                         ActionConstants.ACTION_MEDIA_NEXT);
                         doHapticFeedback();
                 break;
-            case MODE_TOTAL_SILENCE:
-                setZenMode(Settings.Global.ZEN_MODE_NO_INTERRUPTIONS);
-                break;
-            case MODE_ALARMS_ONLY:
-                setZenMode(Settings.Global.ZEN_MODE_ALARMS);
-                break;
-            case MODE_PRIORITY_ONLY:
-                setZenMode(Settings.Global.ZEN_MODE_IMPORTANT_INTERRUPTIONS);
-                setRingerModeInternal(AudioManager.RINGER_MODE_NORMAL);
-                break;
-            case MODE_NONE:
-                setZenMode(Settings.Global.ZEN_MODE_OFF);
-                setRingerModeInternal(AudioManager.RINGER_MODE_NORMAL);
-                break;
-            case MODE_VIBRATE:
-                setRingerModeInternal(AudioManager.RINGER_MODE_VIBRATE);
-                break;
-            case MODE_RING:
-                setRingerModeInternal(AudioManager.RINGER_MODE_NORMAL);
-                break;
             }
 
             if (action == null || action != null && action.equals(ActionConstants.ACTION_NULL)) {
@@ -187,20 +150,6 @@ public class KeyHandler implements DeviceKeyHandler {
                 Action.processAction(mContext, ActionConstants.ACTION_WAKE_DEVICE, false);
             }
             Action.processAction(mContext, action, false);
-        }
-    }
-
-    private void setZenMode(int mode) {
-        mNotificationManager.setZenMode(mode, null, TAG);
-        if (mVibrator != null) {
-            mVibrator.vibrate(50);
-        }
-    }
-
-    private void setRingerModeInternal(int mode) {
-        mAudioManager.setRingerModeInternal(mode);
-        if (mVibrator != null) {
-            mVibrator.vibrate(50);
         }
     }
 
@@ -228,7 +177,7 @@ public class KeyHandler implements DeviceKeyHandler {
         }
         if (isKeySupported && !mEventHandler.hasMessages(GESTURE_REQUEST)) {
             Message msg = getMessageForKeyEvent(event);
-            if (scanCode < MODE_TOTAL_SILENCE && mProximitySensor != null) {
+            if (scanCode < GESTURE_MAX_SCANCODE && mProximitySensor != null) {
                 mEventHandler.sendMessageDelayed(msg, 200);
                 processEvent(event);
             } else {
