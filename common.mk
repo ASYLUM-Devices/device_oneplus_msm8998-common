@@ -201,7 +201,7 @@ PRODUCT_PACKAGES += \
 
 # DevicHandler
 PRODUCT_PACKAGES += \
-	DeviceHandler
+    DeviceHandlerOP5
 
 # Doze
 PRODUCT_PACKAGES += \
